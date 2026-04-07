@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v3.0</title>
+    <title>MonoDo Elite | v3.1</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -16,39 +16,43 @@
             --bg: #0f172a; --card: rgba(30, 41, 59, 0.8); --text: #f8fafc; --border: rgba(255,255,255,0.1);
         }
         [data-theme="light"] {
-            --bg: #f1f5f9; --card: rgba(255, 255, 255, 0.9); --text: #1e293b; --border: rgba(0,0,0,0.1);
+            --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: rgba(0,0,0,0.05);
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; }
         
-        .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 2px solid var(--blue); }
+        .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 1px solid var(--border); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
 
-        /* VIVID PRIORITY CARDS */
+        /* RELAXED TASK DESIGN */
         .todo-item { 
-            background: var(--card); border-radius: 12px; margin-bottom: 12px; padding: 16px; 
+            background: var(--card); border-radius: 16px; margin-bottom: 16px; 
+            padding: 22px 20px; /* Increased padding for relaxed feel */
             display: flex; align-items: center; border: 1px solid var(--border);
-            transition: 0.3s; cursor: grab; position: relative; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s; cursor: grab; min-height: 85px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .todo-item:active { cursor: grabbing; transform: scale(0.98); opacity: 0.8; }
+        .todo-item:active { cursor: grabbing; transform: scale(0.98); }
         
-        /* Full Card Glow Effects */
-        .p-3 { border-left: 6px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.1) 0%, var(--card) 100%); }
-        .p-2 { border-left: 6px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.1) 0%, var(--card) 100%); }
-        .p-1 { border-left: 6px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.1) 0%, var(--card) 100%); }
-        .p-0 { border-left: 6px solid var(--grey); }
+        /* Vivid Glow Logic */
+        .p-3 { border-left: 8px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.08) 0%, var(--card) 40%); }
+        .p-2 { border-left: 8px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.08) 0%, var(--card) 40%); }
+        .p-1 { border-left: 8px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.08) 0%, var(--card) 40%); }
+        .p-0 { border-left: 8px solid var(--grey); }
 
-        /* DRAG AND DROP VISUALS */
-        .dragging { opacity: 0.4; border: 2px dashed var(--blue); }
+        /* SMART FILTERS */
+        .status-tabs { display: flex; background: rgba(0,0,0,0.1); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 15px; }
+        .status-tab { flex: 1; text-align: center; padding: 8px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s; opacity: 0.5; }
+        .status-tab.active { background: var(--blue); color: white; opacity: 1; }
 
-        /* COLOR FILTERS */
-        .color-filters { display: flex; justify-content: center; gap: 15px; margin-top: 15px; }
-        .filter-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; }
-        .filter-dot.active { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .color-filters { display: flex; justify-content: center; gap: 12px; }
+        .filter-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .filter-dot.active { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 12px rgba(255,255,255,0.2); }
 
-        .priority-select { display: flex; gap: 8px; margin-top: 10px; }
-        .p-btn { width: 15px; height: 15px; border-radius: 50%; cursor: pointer; border: 1px solid white; }
+        .priority-select { display: flex; gap: 10px; margin-top: 12px; }
+        .p-btn { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); }
         
-        .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; }
+        .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; font-size: 1.1rem; }
+        .task-text { font-size: 1.05rem; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -56,7 +60,7 @@
         <div class="app-header shadow-sm">
             <div class="container todo-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-layer-group text-info me-2"></i>MonoDo Elite</h4>
+                    <h4 class="fw-bold m-0"><i class="fa-solid fa-bolt text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex align-items-center gap-3">
                         <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer"></i>
                         <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
@@ -64,19 +68,22 @@
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="New task...">
+                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control" placeholder="Type a task...">
                     <button @click="addTask" class="btn btn-info px-4 text-white fw-bold" :disabled="loading">
                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                         <span v-else>ADD</span>
                     </button>
                 </div>
 
-                <div class="color-filters mb-3">
-                    <div @click="colorFilter='all'" class="filter-dot bg-info text-white" :class="{active: colorFilter==='all'}">ALL</div>
-                    <div @click="colorFilter=3" class="filter-dot" style="background: var(--red)" :class="{active: colorFilter===3}"></div>
-                    <div @click="colorFilter=2" class="filter-dot" style="background: var(--orange)" :class="{active: colorFilter===2}"></div>
-                    <div @click="colorFilter=1" class="filter-dot" style="background: var(--green)" :class="{active: colorFilter===1}"></div>
-                    <div @click="colorFilter=0" class="filter-dot" style="background: var(--grey)" :class="{active: colorFilter===0}"></div>
+                <div class="status-tabs">
+                    <div @click="statusFilter='all'" class="status-tab" :class="{active: statusFilter==='all'}">ALL</div>
+                    <div @click="statusFilter='pending'" class="status-tab" :class="{active: statusFilter==='pending'}">PENDING</div>
+                    <div @click="statusFilter='done'" class="status-tab" :class="{active: statusFilter==='done'}">DONE</div>
+                </div>
+
+                <div class="color-filters">
+                    <div @click="colorFilter='all'" class="filter-dot bg-info d-flex align-items-center justify-content-center text-white text-uppercase" style="font-size: 0.6rem; font-weight: 900;" :class="{active: colorFilter==='all'}">ALL</div>
+                    <div v-for="p in [3,2,1,0]" :key="p" @click="colorFilter=p" class="filter-dot" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{active: colorFilter===p}"></div>
                 </div>
             </div>
         </div>
@@ -96,17 +103,18 @@
                 
                 <div class="flex-grow-1">
                     <input v-if="todo.editing" v-model="todo.text" @blur="stopEdit(todo)" @keyup.enter="stopEdit(todo)" class="edit-input" autofocus>
-                    <span v-else :class="{'text-decoration-line-through opacity-50': todo.completed}" class="fw-semibold" @dblclick="todo.editing = true">
+                    <span v-else :class="{'text-decoration-line-through opacity-50': todo.completed}" class="task-text" @dblclick="todo.editing = true">
                         {{ todo.text }}
                     </span>
                     
                     <div class="priority-select">
-                        <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(todo, p)" class="p-btn" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}"></div>
+                        <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(todo, p)" class="p-btn" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{'border-white border-2': todo.priority === p}"></div>
                     </div>
                 </div>
 
-                <div class="d-flex gap-3 ms-2">
-                    <i @click="deleteTodo(todo.id)" class="fa-solid fa-xmark opacity-25 text-danger" style="cursor:pointer"></i>
+                <div class="d-flex gap-3 ms-2 align-items-center">
+                    <i @click="todo.editing = !todo.editing" class="fa-solid fa-pen-to-square opacity-50" style="cursor:pointer"></i>
+                    <i @click="deleteTodo(todo.id)" class="fa-solid fa-trash-can opacity-25 text-danger" style="cursor:pointer"></i>
                 </div>
             </div>
         </div>
@@ -119,18 +127,21 @@
         createApp({
             data() {
                 return { 
-                    todos: [], newTask: '', loading: false, theme: 'dark', colorFilter: 'all',
-                    draggingIndex: null 
+                    todos: [], newTask: '', loading: false, theme: 'dark', 
+                    colorFilter: 'all', statusFilter: 'all', draggingIndex: null 
                 };
             },
             computed: {
                 filteredTodos() {
-                    let list = [...this.todos];
-                    // Sort logic: Priority first (3 to 0), then use 'order' for the drag positions
-                    list.sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                    let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
                     
+                    // Filter 1: Status
+                    if (this.statusFilter === 'pending') list = list.filter(t => !t.completed);
+                    if (this.statusFilter === 'done') list = list.filter(t => t.completed);
+
+                    // Filter 2: Priority Color
                     if (this.colorFilter !== 'all') {
-                        return list.filter(t => t.priority === this.colorFilter);
+                        list = list.filter(t => t.priority === this.colorFilter);
                     }
                     return list;
                 }
@@ -146,10 +157,16 @@
                 async addTask() {
                     if (!this.newTask.trim()) return;
                     this.loading = true;
+                    const originalTask = this.newTask;
+                    this.newTask = ''; // Clear immediately for feel
+                    
                     try {
-                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
-                        this.todos.push({...await res.json(), editing: false});
-                        this.newTask = '';
+                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: originalTask}) });
+                        const saved = await res.json();
+                        this.todos.push({...saved, editing: false});
+                        
+                        // Keep focus on input for Note 20 keyboard stability
+                        this.$nextTick(() => { this.$refs.taskInput.focus(); });
                     } finally { this.loading = false; }
                 },
                 async updateTodo(todo) {
@@ -169,7 +186,7 @@
                     this.todos = this.todos.filter(t => t.id !== id);
                 },
                 async deleteAll() {
-                    if (confirm("Delete everything?")) {
+                    if (confirm("Clear your entire workspace?")) {
                         await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
                         this.todos = [];
                     }
@@ -178,10 +195,7 @@
                     this.theme = this.theme === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', this.theme);
                 },
-                // NATIVE DRAG & DROP LOGIC
-                onDragStart(index) {
-                    this.draggingIndex = index;
-                },
+                onDragStart(index) { this.draggingIndex = index; },
                 onDragEnter(index) {
                     if (index === this.draggingIndex) return;
                     const movedItem = this.todos.splice(this.draggingIndex, 1)[0];
@@ -190,11 +204,7 @@
                 },
                 onDragEnd() {
                     this.draggingIndex = null;
-                    // Save the new order to the database
-                    this.todos.forEach((t, i) => {
-                        t.order = i;
-                        this.updateTodo(t);
-                    });
+                    this.todos.forEach((t, i) => { t.order = i; this.updateTodo(t); });
                 }
             },
             mounted() { 
