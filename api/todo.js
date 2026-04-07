@@ -13,7 +13,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export default async function handler(req, res) {
-  // Fix for CORS
+  // CORS HEADERS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -26,25 +26,35 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const snapshot = await col.get();
-      const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const todos = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return { 
+          id: doc.id, 
+          text: data.text || "", 
+          completed: data.completed || false, 
+          priority: data.priority || 0, 
+          order: data.order || Date.now() 
+        };
+      });
       return res.status(200).json(todos);
     }
 
     if (req.method === 'POST') {
-      const data = {
-        text: req.body.text || "Untitled Task",
+      const newTask = {
+        text: req.body.text,
         completed: false,
         priority: 0,
         order: Date.now(),
         createdAt: new Date()
       };
-      const docRef = await col.add(data);
-      return res.status(201).json({ id: docRef.id, ...data });
+      const docRef = await col.add(newTask);
+      return res.status(201).json({ id: docRef.id, ...newTask });
     }
 
     if (req.method === 'PUT') {
-      const { id, editing, showPicker, ...updates } = req.body; // Clean the data
-      await col.doc(id).update(updates);
+      const { id, ...updates } = req.body;
+      // We remove ID so we don't try to save the ID inside the document itself
+      await col.doc(id).set(updates, { merge: true });
       return res.status(200).json({ success: true });
     }
 
@@ -60,7 +70,6 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true });
     }
   } catch (e) {
-    console.error("API Error:", e.message);
     return res.status(500).json({ error: e.message });
   }
 }
