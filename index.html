@@ -1,66 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MonoDo | Modern Task Manager</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MonoDo Elite</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuedraggable/4.1.0/vuedraggable.umd.min.js"></script>
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; align-items: center; }
-        .todo-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; margin: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-        .form-control { background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; color: white; border-radius: 10px; }
-        .form-control:focus { background: rgba(15, 23, 42, 0.8); color: white; border-color: #38bdf8; box-shadow: none; }
-        .todo-item { background: rgba(51, 65, 85, 0.3); border-radius: 12px; margin-bottom: 10px; padding: 12px 15px; display: flex; align-items: center; transition: 0.3s; }
-        .done-text { text-decoration: line-through; opacity: 0.5; }
-        .btn-add { background: #38bdf8; border: none; font-weight: 600; color: white; }
-        .btn-delete { color: #f43f5e; background: none; border: none; opacity: 0.7; }
+        :root { --red: #ff4d4d; --orange: #ffa502; --green: #2ed573; --bg: #0f172a; }
+        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        
+        /* Fixed Header */
+        .app-header { position: sticky; top: 0; z-index: 1000; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(15px); padding: 20px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .todo-card { max-width: 550px; margin: 20px auto; padding: 0 15px; }
+
+        .input-group { background: rgba(30, 41, 59, 0.5); border: 1px solid #334155; border-radius: 15px; overflow: hidden; }
+        .form-control { background: transparent; border: none; color: white; padding: 15px; }
+        .form-control:focus { background: transparent; color: white; box-shadow: none; }
+
+        /* Tabs */
+        .nav-pills .nav-link { color: #94a3b8; border-radius: 10px; font-size: 0.9rem; transition: 0.3s; }
+        .nav-pills .nav-link.active { background: #38bdf8; color: white; }
+
+        /* Todo Item */
+        .todo-item { background: rgba(30, 41, 59, 0.6); border-left: 4px solid transparent; border-radius: 12px; margin-bottom: 12px; padding: 15px; display: flex; align-items: center; cursor: grab; transition: transform 0.2s; }
+        .todo-item:active { cursor: grabbing; transform: scale(0.98); }
+        .item-priority-3 { border-left-color: var(--red); }
+        .item-priority-2 { border-left-color: var(--orange); }
+        .item-priority-1 { border-left-color: var(--green); }
+        
+        /* Priority Picker (Hidden by default) */
+        .priority-picker { display: flex; gap: 10px; margin-top: 10px; }
+        .p-square { width: 25px; height: 25px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; }
+        .p-red { background: var(--red); }
+        .p-orange { background: var(--orange); }
+        .p-green { background: var(--green); }
+        .p-none { background: #334155; }
+        .p-active { border-color: white; }
+
+        .btn-trash { color: #f43f5e; border: none; background: none; font-size: 1.2rem; }
+        .edit-input { background: transparent; border: none; border-bottom: 1px solid #38bdf8; color: white; width: 100%; }
     </style>
 </head>
 <body>
-    <div id="app" class="container">
-        <div class="todo-card">
-            <h3 class="mb-4 fw-bold"><i class="fa-solid fa-layer-group me-2 text-info"></i> MonoDo</h3>
-            <div class="input-group mb-4">
-                <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="Add a task...">
-                <button @click="addTask" class="btn btn-add px-4" :disabled="loading">Add</button>
-            </div>
-            <div class="todo-list">
-                <div v-for="todo in todos" :key="todo.id" class="todo-item">
-                    <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="toggleTodo(todo)">
-                    <span class="flex-grow-1" :class="{ 'done-text': todo.completed }">{{ todo.text }}</span>
-                    <button @click="deleteTodo(todo.id)" class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+    <div id="app">
+        <div class="app-header">
+            <div class="container todo-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="fw-bold m-0"><i class="fa-solid fa-crown text-info me-2"></i>MonoDo Elite</h3>
+                    <button @click="deleteAll" class="btn-trash" title="Clear All"><i class="fa-solid fa-dumpster-fire"></i></button>
                 </div>
+                
+                <div class="input-group mb-3">
+                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="What's the plan?">
+                    <button @click="addTask" class="btn btn-info px-4 text-white">Add</button>
+                </div>
+
+                <ul class="nav nav-pills nav-justified mb-2">
+                    <li class="nav-item"><a class="nav-link" :class="{active: tab==='all'}" @click="tab='all'">All</a></li>
+                    <li class="nav-item"><a class="nav-link" :class="{active: tab==='pending'}" @click="tab='pending'">Pending</a></li>
+                    <li class="nav-item"><a class="nav-link" :class="{active: tab==='done'}" @click="tab='done'">Done</a></li>
+                </ul>
             </div>
         </div>
+
+        <div class="container todo-card">
+            <draggable v-model="sortedTodos" item-key="id" @end="updateOrder" handle=".todo-item">
+                <template #item="{element}">
+                    <div v-if="shouldShow(element)" class="todo-item" :class="'item-priority-'+element.priority" @contextmenu.prevent="element.showPicker = !element.showPicker">
+                        <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)">
+                        
+                        <div class="flex-grow-1">
+                            <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autoFocus>
+                            <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" @dblclick="element.editing = true">
+                                {{ element.text }}
+                            </span>
+                            
+                            <div v-if="element.showPicker" class="priority-picker">
+                                <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(element, p)" :class="['p-square', p==3?'p-red':p==2?'p-orange':p==1?'p-green':'p-none', element.priority==p?'p-active':'']"></div>
+                            </div>
+                        </div>
+
+                        <button @click="element.editing = true" class="btn text-muted p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button @click="deleteTodo(element.id)" class="btn text-danger p-1 ms-2"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </template>
+            </draggable>
+        </div>
     </div>
+
     <script>
         const API_URL = `${window.location.origin}/api/todo`;
         const { createApp } = Vue;
+
         createApp({
-            data() { return { todos: [], newTask: '', loading: false }; },
+            components: { draggable: vuedraggable },
+            data() {
+                return { todos: [], newTask: '', tab: 'all' };
+            },
+            computed: {
+                sortedTodos: {
+                    get() {
+                        return [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                    },
+                    set(value) { this.todos = value; }
+                }
+            },
             methods: {
                 async fetchTodos() {
                     const res = await fetch(API_URL);
-                    this.todos = await res.json();
+                    this.todos = (await res.json()).map(t => ({...t, editing: false, showPicker: false}));
                 },
                 async addTask() {
                     if (!this.newTask.trim()) return;
-                    const res = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: this.newTask })
-                    });
-                    const newItem = await res.json();
-                    this.todos.unshift(newItem);
+                    const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
+                    this.todos.unshift({...await res.json(), editing: false, showPicker: false});
                     this.newTask = '';
                 },
-                async toggleTodo(todo) {
-                    await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: todo.id, completed: todo.completed }) });
+                shouldShow(todo) {
+                    if (this.tab === 'pending') return !todo.completed;
+                    if (this.tab === 'done') return todo.completed;
+                    return true;
+                },
+                async updateTodo(todo) {
+                    await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(todo) });
+                },
+                stopEdit(todo) {
+                    todo.editing = false;
+                    this.updateTodo(todo);
+                },
+                setPriority(todo, p) {
+                    todo.priority = p;
+                    todo.showPicker = false;
+                    this.updateTodo(todo);
                 },
                 async deleteTodo(id) {
-                    await fetch(API_URL, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+                    await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
                     this.todos = this.todos.filter(t => t.id !== id);
+                },
+                async deleteAll() {
+                    if (confirm("Clear everything?")) {
+                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
+                        this.todos = [];
+                    }
                 }
             },
             mounted() { this.fetchTodos(); }
