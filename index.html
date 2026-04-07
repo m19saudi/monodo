@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v2.1</title>
+    <title>MonoDo Elite | v2.2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
@@ -21,7 +21,7 @@
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; overflow-x: hidden; }
         
-        /* Sticky Header Logic */
+        /* Sticky Header */
         .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 2px solid var(--blue); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
 
@@ -29,7 +29,7 @@
         .form-control { background: transparent; border: none; color: var(--text); padding: 12px; }
         .form-control:focus { background: transparent; color: var(--text); box-shadow: none; }
 
-        /* Tab Highlighting */
+        /* Tabs Styling */
         .nav-pills { background: var(--card); border-radius: 12px; padding: 5px; margin-bottom: 10px; border: 1px solid var(--border); }
         .nav-pills .nav-link { color: var(--text); opacity: 0.5; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
         .nav-pills .nav-link.active { background: var(--blue) !important; color: white !important; opacity: 1; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
@@ -45,18 +45,13 @@
         .item-priority-2 { border-left-color: var(--orange); }
         .item-priority-1 { border-left-color: var(--green); }
         
-        /* Priority Selector UI */
+        /* Priority UI */
         .priority-picker { display: flex; gap: 10px; margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 10px; width: fit-content; }
         .p-square { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .p-square:hover { transform: scale(1.1); }
         .p-active { border-color: var(--text); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
         .theme-toggle { cursor: pointer; font-size: 1.3rem; transition: 0.3s; }
         .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -67,12 +62,12 @@
                     <h4 class="fw-bold m-0"><i class="fa-solid fa-layer-group text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex align-items-center gap-3">
                         <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" class="theme-toggle"></i>
-                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer" title="Clear All Tasks"></i>
+                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
                     </div>
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="What needs to be done?">
+                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="Add a task...">
                     <button @click="addTask" class="btn btn-info px-4 text-white fw-bold" :disabled="loading">
                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                         <span v-else>ADD</span>
@@ -82,7 +77,7 @@
                 <ul class="nav nav-pills nav-justified">
                     <li class="nav-item"><a class="nav-link" :class="{active: tab==='all'}" @click="tab='all'">ALL</a></li>
                     <li class="nav-item"><a class="nav-link" :class="{active: tab==='pending'}" @click="tab='pending'">PENDING</a></li>
-                    <li class="nav-item"><a class="nav-link" :class="{active: tab==='done'}" @click="tab='done'">COMPLETED</a></li>
+                    <li class="nav-item"><a class="nav-link" :class="{active: tab==='done'}" @click="tab='done'">DONE</a></li>
                 </ul>
             </div>
         </div>
@@ -90,7 +85,7 @@
         <div class="container todo-card mt-4 pb-5">
             <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5 animate__animated animate__fadeIn">
                 <i class="fa-solid fa-clipboard-check fa-4x mb-3"></i>
-                <p class="fw-bold">All clear in {{ tab }}!</p>
+                <p>Nothing found in {{ tab }}</p>
             </div>
 
             <draggable v-model="todos" item-key="id" handle=".todo-item" @end="saveOrder">
@@ -103,24 +98,13 @@
                         <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)">
                         
                         <div class="flex-grow-1">
-                            <input v-if="element.editing" 
-                                   v-model="element.text" 
-                                   @blur="stopEdit(element)" 
-                                   @keyup.enter="stopEdit(element)" 
-                                   class="edit-input" 
-                                   autoFocus>
-                            <span v-else 
-                                  :class="{'text-decoration-line-through opacity-50': element.completed}" 
-                                  class="fw-semibold"
-                                  @dblclick="element.editing = true">
+                            <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autoFocus>
+                            <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" class="fw-semibold" @dblclick="element.editing = true">
                                 {{ element.text }}
                             </span>
                             
-                            <div v-if="element.showPicker" class="priority-picker animate__animated animate__zoomIn">
-                                <div @click="setPriority(element, 3)" class="p-square" style="background:#ff4d4d" :class="{'p-active': element.priority==3}"></div>
-                                <div @click="setPriority(element, 2)" class="p-square" style="background:#ffa502" :class="{'p-active': element.priority==2}"></div>
-                                <div @click="setPriority(element, 1)" class="p-square" style="background:#2ed573" :class="{'p-active': element.priority==1}"></div>
-                                <div @click="setPriority(element, 0)" class="p-square" style="background:#64748b" :class="{'p-active': element.priority==0}"></div>
+                            <div v-if="element.showPicker" class="priority-picker">
+                                <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(element, p)" class="p-square" :style="{background: p==3?'#ff4d4d':p==2?'#ffa502':p==1?'#2ed573':'#64748b'}" :class="{'p-active': element.priority==p}"></div>
                             </div>
                         </div>
 
@@ -138,20 +122,13 @@
         const API_URL = '/api/todo';
         const { createApp } = Vue;
 
-        createApp({
-            components: { draggable: vuedraggable },
+        const app = createApp({
+            components: { 'draggable': window.vuedraggable },
             data() {
-                return { 
-                    todos: [], 
-                    newTask: '', 
-                    tab: 'all', 
-                    loading: false, 
-                    theme: 'dark' 
-                };
+                return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
             },
             computed: {
                 filteredTodos() {
-                    // This creates the visual list. Priority 3 (Red) is always top.
                     let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
                     if (this.tab === 'pending') return list.filter(t => !t.completed);
                     if (this.tab === 'done') return list.filter(t => t.completed);
@@ -165,29 +142,19 @@
                         const res = await fetch(API_URL);
                         const data = await res.json();
                         this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
-                    } catch (e) {
-                        console.error("Fetch error:", e);
-                    } finally {
-                        this.loading = false;
-                    }
+                    } catch (e) { console.error(e); }
+                    finally { this.loading = false; }
                 },
                 async addTask() {
                     if (!this.newTask.trim()) return;
-                    this.loading = true; // START SPINNER
+                    this.loading = true;
                     try {
-                        const res = await fetch(API_URL, { 
-                            method: 'POST', 
-                            headers: {'Content-Type': 'application/json'}, 
-                            body: JSON.stringify({text: this.newTask}) 
-                        });
+                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
                         const newItem = await res.json();
                         this.todos.push({...newItem, editing: false, showPicker: false});
                         this.newTask = '';
-                    } catch (e) {
-                        alert("Connection failed. Please check Vercel logs.");
-                    } finally {
-                        this.loading = false; // STOP SPINNER NO MATTER WHAT
-                    }
+                    } catch (e) { alert("Error adding task."); }
+                    finally { this.loading = false; }
                 },
                 shouldShow(todo) {
                     if (this.tab === 'pending') return !todo.completed;
@@ -195,16 +162,10 @@
                     return true;
                 },
                 async updateTodo(todo) {
-                    // Send only the data Firebase needs (clean data)
                     const { editing, showPicker, ...cleanTodo } = todo;
-                    await fetch(API_URL, { 
-                        method: 'PUT', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify(cleanTodo) 
-                    });
+                    await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cleanTodo) });
                 },
                 togglePicker(todo) {
-                    // Close other pickers when opening a new one
                     this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
                     todo.showPicker = !todo.showPicker;
                 },
@@ -222,7 +183,7 @@
                     this.todos = this.todos.filter(t => t.id !== id);
                 },
                 async deleteAll() {
-                    if (confirm("Permanently delete all tasks?")) {
+                    if (confirm("Delete all?")) {
                         await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
                         this.todos = [];
                     }
@@ -242,7 +203,8 @@
                 this.fetchTodos();
                 document.documentElement.setAttribute('data-theme', 'dark');
             }
-        }).mount('#app');
+        });
+        app.mount('#app');
     </script>
 </body>
 </html>
