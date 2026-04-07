@@ -13,30 +13,37 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 export default async function handler(req, res) {
+  // Fix for CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
   const col = db.collection('todos');
   
   try {
     if (req.method === 'GET') {
-      // Sort by priority (Red > Orange > Green > None) then by custom position
       const snapshot = await col.get();
       const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       return res.status(200).json(todos);
     }
 
     if (req.method === 'POST') {
-      const { text } = req.body;
-      const docRef = await col.add({ 
-        text, 
-        completed: false, 
-        priority: 0, // 0: None, 1: Green, 2: Orange, 3: Red
-        order: Date.now(), 
-        createdAt: new Date() 
-      });
-      return res.status(201).json({ id: docRef.id, text, completed: false, priority: 0 });
+      const data = {
+        text: req.body.text || "Untitled Task",
+        completed: false,
+        priority: 0,
+        order: Date.now(),
+        createdAt: new Date()
+      };
+      const docRef = await col.add(data);
+      return res.status(201).json({ id: docRef.id, ...data });
     }
 
     if (req.method === 'PUT') {
-      const { id, ...updates } = req.body;
+      const { id, editing, showPicker, ...updates } = req.body; // Clean the data
       await col.doc(id).update(updates);
       return res.status(200).json({ success: true });
     }
@@ -52,5 +59,8 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ success: true });
     }
-  } catch (e) { return res.status(500).json({ error: e.message }); }
+  } catch (e) {
+    console.error("API Error:", e.message);
+    return res.status(500).json({ error: e.message });
+  }
 }
