@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v3.3</title>
+    <title>MonoDo Elite | v3.4</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -29,27 +29,27 @@
         /* RELAXED CARD DESIGN */
         .todo-item { 
             background: var(--card); border-radius: 18px; margin-bottom: 16px; 
-            padding: 20px; display: flex; align-items: center; justify-content: space-between;
-            border: 1px solid var(--border); transition: 0.3s; 
+            padding: 22px 20px; display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid var(--border); transition: 0.2s; 
             cursor: grab; min-height: 90px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
         .todo-item:active { cursor: grabbing; }
         
         /* Glow Borders */
-        .p-3 { border-left: 10px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.1) 0%, var(--card) 50%); }
-        .p-2 { border-left: 10px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.1) 0%, var(--card) 50%); }
-        .p-1 { border-left: 10px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.1) 0%, var(--card) 50%); }
+        .p-3 { border-left: 10px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.12) 0%, var(--card) 50%); }
+        .p-2 { border-left: 10px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.12) 0%, var(--card) 50%); }
+        .p-1 { border-left: 10px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.12) 0%, var(--card) 50%); }
         .p-0 { border-left: 10px solid var(--grey); }
 
-        /* FIXED ICONS ON RIGHT */
-        .action-zone { display: flex; gap: 18px; align-items: center; margin-left: 15px; flex-shrink: 0; }
+        /* LOCKED ICONS ON RIGHT */
+        .action-zone { display: flex; gap: 15px; align-items: center; margin-left: 15px; flex-shrink: 0; }
         .icon-btn { 
-            font-size: 1.2rem; cursor: pointer; transition: 0.2s; opacity: 0.4; 
-            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; opacity: 0.5; 
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
         }
         .icon-btn:hover { opacity: 1; transform: scale(1.2); }
-        .btn-edit:hover { color: var(--blue); text-shadow: 0 0 15px var(--blue); }
-        .btn-delete:hover { color: var(--red); text-shadow: 0 0 15px var(--red); }
+        .btn-edit:hover { color: var(--blue); text-shadow: 0 0 12px var(--blue); }
+        .btn-delete:hover { color: var(--red); text-shadow: 0 0 12px var(--red); }
 
         .content-zone { flex-grow: 1; overflow: hidden; }
         .task-text { font-size: 1.1rem; font-weight: 500; word-wrap: break-word; }
@@ -57,15 +57,15 @@
 
         /* STATUS & COLOR FILTERS */
         .status-tabs { display: flex; background: rgba(0,0,0,0.15); border-radius: 12px; padding: 5px; gap: 5px; margin-bottom: 15px; }
-        .status-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; font-weight: 800; border-radius: 8px; cursor: pointer; opacity: 0.4; }
+        .status-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; font-weight: 800; border-radius: 8px; cursor: pointer; opacity: 0.4; transition: 0.3s; }
         .status-tab.active { background: var(--blue); color: white; opacity: 1; }
 
         .priority-dots { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
-        .filter-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
-        .filter-dot.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .filter-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .filter-dot.active { border-color: white; transform: scale(1.2); }
 
         .p-selector { display: flex; gap: 10px; margin-top: 12px; }
-        .p-dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
+        .p-dot { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
     </style>
 </head>
 <body>
@@ -74,40 +74,42 @@
             <div class="container todo-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="fw-bold m-0"><i class="fa-solid fa-bolt text-info me-2"></i>MonoDo Elite</h4>
-                    <div class="d-flex gap-3">
+                    <div class="d-flex gap-4">
                         <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer"></i>
                         <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
                     </div>
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control" placeholder="Type a task...">
+                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control" placeholder="What's next?">
                     <button @click="addTask" class="btn btn-info px-4 text-white fw-bold">ADD</button>
                 </div>
 
                 <div class="status-tabs">
-                    <div v-for="s in ['all', 'pending', 'done']" :key="s" @click="statusFilter=s" class="status-tab text-uppercase" :class="{active: statusFilter===s}">{{s}}</div>
+                    <div @click="statusFilter='all'" class="status-tab" :class="{active: statusFilter==='all'}">ALL</div>
+                    <div @click="statusFilter='pending'" class="status-tab" :class="{active: statusFilter==='pending'}">PENDING</div>
+                    <div @click="statusFilter='done'" class="status-tab" :class="{active: statusFilter==='done'}">DONE</div>
                 </div>
 
                 <div class="priority-dots">
-                    <div @click="colorFilter='all'" class="filter-dot bg-info d-flex align-items-center justify-content-center text-white" style="font-size:0.5rem; font-weight:900" :class="{active: colorFilter==='all'}">ALL</div>
+                    <div @click="colorFilter='all'" class="filter-dot bg-info d-flex align-items-center justify-content-center text-white" style="font-size:0.6rem; font-weight:900" :class="{active: colorFilter==='all'}">ALL</div>
                     <div v-for="p in [3,2,1,0]" :key="p" @click="colorFilter=p" class="filter-dot" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{active: colorFilter===p}"></div>
                 </div>
             </div>
         </div>
 
         <div class="container todo-card mt-4 pb-5">
-            <vuedraggable v-model="todos" item-key="id" @end="saveOrder" :animation="300">
+            <vuedraggable v-model="todos" item-key="id" @end="saveOrder" :animation="250" handle=".todo-item">
                 <template #item="{element}">
-                    <div v-if="shouldDisplay(element)" class="todo-item animate__animated animate__fadeInUp" :class="'p-' + (element.priority || 0)">
-                        <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)" style="width:22px; height:22px; flex-shrink:0;">
+                    <div v-show="isVisible(element)" class="todo-item animate__animated animate__fadeInUp" :class="'p-' + (element.priority || 0)">
+                        <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)" style="width:24px; height:24px; flex-shrink:0;">
                         
                         <div class="content-zone">
                             <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autofocus>
                             <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" class="task-text" @dblclick="element.editing = true">{{ element.text }}</span>
                             
                             <div class="p-selector">
-                                <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(element, p)" class="p-dot" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{'border-white shadow': element.priority === p}"></div>
+                                <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(element, p)" class="p-dot" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{'border-white shadow-lg': element.priority === p}"></div>
                             </div>
                         </div>
 
@@ -130,21 +132,16 @@
                 data() {
                     return { todos: [], newTask: '', loading: false, theme: 'dark', colorFilter: 'all', statusFilter: 'all' };
                 },
-                computed: {
-                    // Sorting is handled by the draggable component's order now
-                    sortedTodos() {
-                        return [...this.todos].sort((a, b) => (a.order || 0) - (b.order || 0));
-                    }
-                },
                 methods: {
-                    shouldDisplay(todo) {
-                        const statusMatch = this.statusFilter === 'all' || (this.statusFilter === 'pending' ? !todo.completed : todo.completed);
-                        const colorMatch = this.colorFilter === 'all' || todo.priority === this.colorFilter;
-                        return statusMatch && colorMatch;
+                    isVisible(todo) {
+                        const sMatch = this.statusFilter === 'all' || (this.statusFilter === 'pending' ? !todo.completed : todo.completed);
+                        const cMatch = this.colorFilter === 'all' || todo.priority === this.colorFilter;
+                        return sMatch && cMatch;
                     },
                     async fetchTodos() {
                         const res = await fetch(API_URL);
-                        this.todos = (await res.json()).map(t => ({...t, editing: false})).sort((a,b) => (a.order || 0) - (b.order || 0));
+                        const data = await res.json();
+                        this.todos = data.map(t => ({...t, editing: false})).sort((a,b) => (a.order || 0) - (b.order || 0));
                     },
                     async addTask() {
                         if (!this.newTask.trim()) return;
@@ -183,7 +180,6 @@
                 }
             });
 
-            // GURANTEED REGISTRATION: This prevents the resolution error
             app.component('vuedraggable', window.vuedraggable);
             app.mount('#app');
         };
