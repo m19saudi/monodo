@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v3.1</title>
+    <title>MonoDo Elite | v3.2</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -13,77 +13,84 @@
     <style>
         :root { 
             --red: #ff4d4d; --orange: #ffa502; --green: #2ed573; --grey: #64748b; --blue: #38bdf8;
-            --bg: #0f172a; --card: rgba(30, 41, 59, 0.8); --text: #f8fafc; --border: rgba(255,255,255,0.1);
+            --bg: #0f172a; --card: rgba(30, 41, 59, 0.85); --text: #f8fafc; --border: rgba(255,255,255,0.1);
         }
         [data-theme="light"] {
-            --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: rgba(0,0,0,0.05);
+            --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: rgba(0,0,0,0.08);
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; }
         
         .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 1px solid var(--border); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
 
-        /* RELAXED TASK DESIGN */
+        /* REORDERABLE TASK CARD */
         .todo-item { 
-            background: var(--card); border-radius: 16px; margin-bottom: 16px; 
-            padding: 22px 20px; /* Increased padding for relaxed feel */
-            display: flex; align-items: center; border: 1px solid var(--border);
-            transition: transform 0.2s, box-shadow 0.2s; cursor: grab; min-height: 85px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: var(--card); border-radius: 18px; margin-bottom: 16px; 
+            padding: 20px; display: flex; align-items: center; justify-content: space-between;
+            border: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: grab; min-height: 90px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
-        .todo-item:active { cursor: grabbing; transform: scale(0.98); }
+        .todo-item:active { cursor: grabbing; transform: scale(0.97); }
         
-        /* Vivid Glow Logic */
-        .p-3 { border-left: 8px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.08) 0%, var(--card) 40%); }
-        .p-2 { border-left: 8px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.08) 0%, var(--card) 40%); }
-        .p-1 { border-left: 8px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.08) 0%, var(--card) 40%); }
-        .p-0 { border-left: 8px solid var(--grey); }
+        /* Priority Glows */
+        .p-3 { border-left: 10px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.1) 0%, var(--card) 50%); }
+        .p-2 { border-left: 10px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.1) 0%, var(--card) 50%); }
+        .p-1 { border-left: 10px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.1) 0%, var(--card) 50%); }
+        .p-0 { border-left: 10px solid var(--grey); }
 
-        /* SMART FILTERS */
-        .status-tabs { display: flex; background: rgba(0,0,0,0.1); border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 15px; }
-        .status-tab { flex: 1; text-align: center; padding: 8px; font-size: 0.75rem; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.2s; opacity: 0.5; }
-        .status-tab.active { background: var(--blue); color: white; opacity: 1; }
-
-        .color-filters { display: flex; justify-content: center; gap: 12px; }
-        .filter-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .filter-dot.active { border-color: var(--text); transform: scale(1.2); box-shadow: 0 0 12px rgba(255,255,255,0.2); }
-
-        .priority-select { display: flex; gap: 10px; margin-top: 12px; }
-        .p-btn { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); }
+        /* FIXED ICON SECTION */
+        .action-zone { display: flex; gap: 18px; align-items: center; margin-left: 15px; flex-shrink: 0; }
         
+        .icon-btn { 
+            font-size: 1.2rem; cursor: pointer; transition: 0.2s; opacity: 0.4; 
+            width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;
+        }
+        .icon-btn:hover, .icon-btn:active { opacity: 1; transform: scale(1.2); }
+        .btn-edit:hover { color: var(--blue); text-shadow: 0 0 15px var(--blue); }
+        .btn-delete:hover { color: var(--red); text-shadow: 0 0 15px var(--red); }
+
+        /* INPUTS & TEXT */
+        .content-zone { flex-grow: 1; overflow: hidden; }
+        .task-text { font-size: 1.1rem; font-weight: 500; word-wrap: break-word; line-height: 1.4; }
         .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; font-size: 1.1rem; }
-        .task-text { font-size: 1.05rem; font-weight: 500; }
+
+        /* FILTERS */
+        .status-tabs { display: flex; background: rgba(0,0,0,0.15); border-radius: 12px; padding: 5px; gap: 5px; margin-bottom: 15px; }
+        .status-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; font-weight: 800; border-radius: 8px; cursor: pointer; opacity: 0.4; transition: 0.3s; }
+        .status-tab.active { background: var(--blue); color: white; opacity: 1; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.3); }
+
+        .priority-select { display: flex; gap: 12px; margin-top: 15px; }
+        .p-btn { width: 20px; height: 20px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: 0.2s; }
+        .p-btn:hover { transform: scale(1.3); border-color: white; }
     </style>
 </head>
 <body>
     <div id="app">
         <div class="app-header shadow-sm">
             <div class="container todo-card">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-bolt text-info me-2"></i>MonoDo Elite</h4>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold m-0"><i class="fa-solid fa-layer-group text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex align-items-center gap-3">
-                        <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer"></i>
-                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
+                        <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer; font-size: 1.2rem;"></i>
+                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer; font-size: 1.2rem;"></i>
                     </div>
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control" placeholder="Type a task...">
-                    <button @click="addTask" class="btn btn-info px-4 text-white fw-bold" :disabled="loading">
+                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control" placeholder="What's the next goal?">
+                    <button @click="addTask" class="btn btn-info px-4 text-white fw-bold">
                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                         <span v-else>ADD</span>
                     </button>
                 </div>
 
                 <div class="status-tabs">
-                    <div @click="statusFilter='all'" class="status-tab" :class="{active: statusFilter==='all'}">ALL</div>
-                    <div @click="statusFilter='pending'" class="status-tab" :class="{active: statusFilter==='pending'}">PENDING</div>
-                    <div @click="statusFilter='done'" class="status-tab" :class="{active: statusFilter==='done'}">DONE</div>
+                    <div v-for="s in ['all', 'pending', 'done']" :key="s" @click="statusFilter=s" class="status-tab text-uppercase" :class="{active: statusFilter===s}">{{s}}</div>
                 </div>
 
-                <div class="color-filters">
-                    <div @click="colorFilter='all'" class="filter-dot bg-info d-flex align-items-center justify-content-center text-white text-uppercase" style="font-size: 0.6rem; font-weight: 900;" :class="{active: colorFilter==='all'}">ALL</div>
-                    <div v-for="p in [3,2,1,0]" :key="p" @click="colorFilter=p" class="filter-dot" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{active: colorFilter===p}"></div>
+                <div class="d-flex justify-content-center gap-3">
+                    <div @click="colorFilter='all'" class="filter-dot bg-info rounded-circle" style="width:25px; height:25px; cursor:pointer; opacity:0.6;" :class="{active: colorFilter==='all'}"></div>
+                    <div v-for="p in [3,2,1,0]" :key="p" @click="colorFilter=p" class="rounded-circle" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)', width:'25px', height:'25px', cursor:'pointer', border: colorFilter===p?'2px solid white':''}"></div>
                 </div>
             </div>
         </div>
@@ -92,29 +99,33 @@
             <div v-for="(todo, index) in filteredTodos" 
                  :key="todo.id" 
                  class="todo-item animate__animated animate__fadeInUp" 
-                 :class="['p-' + (todo.priority || 0), { dragging: draggingIndex === index }]"
+                 :class="'p-' + (todo.priority || 0)"
                  draggable="true"
                  @dragstart="onDragStart(index)"
                  @dragover.prevent
                  @dragenter="onDragEnter(index)"
                  @dragend="onDragEnd">
                 
-                <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="updateTodo(todo)">
+                <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="updateTodo(todo)" style="width: 22px; height: 22px; flex-shrink: 0;">
                 
-                <div class="flex-grow-1">
+                <div class="content-zone">
                     <input v-if="todo.editing" v-model="todo.text" @blur="stopEdit(todo)" @keyup.enter="stopEdit(todo)" class="edit-input" autofocus>
                     <span v-else :class="{'text-decoration-line-through opacity-50': todo.completed}" class="task-text" @dblclick="todo.editing = true">
                         {{ todo.text }}
                     </span>
                     
                     <div class="priority-select">
-                        <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(todo, p)" class="p-btn" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{'border-white border-2': todo.priority === p}"></div>
+                        <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(todo, p)" class="p-btn" :style="{background: p==3?'var(--red)':p==2?'var(--orange)':p==1?'var(--green)':'var(--grey)'}" :class="{'border-white shadow': todo.priority === p}"></div>
                     </div>
                 </div>
 
-                <div class="d-flex gap-3 ms-2 align-items-center">
-                    <i @click="todo.editing = !todo.editing" class="fa-solid fa-pen-to-square opacity-50" style="cursor:pointer"></i>
-                    <i @click="deleteTodo(todo.id)" class="fa-solid fa-trash-can opacity-25 text-danger" style="cursor:pointer"></i>
+                <div class="action-zone">
+                    <div class="icon-btn btn-edit" @click="todo.editing = !todo.editing">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div class="icon-btn btn-delete" @click="deleteTodo(todo.id)">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -134,15 +145,9 @@
             computed: {
                 filteredTodos() {
                     let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
-                    
-                    // Filter 1: Status
                     if (this.statusFilter === 'pending') list = list.filter(t => !t.completed);
                     if (this.statusFilter === 'done') list = list.filter(t => t.completed);
-
-                    // Filter 2: Priority Color
-                    if (this.colorFilter !== 'all') {
-                        list = list.filter(t => t.priority === this.colorFilter);
-                    }
+                    if (this.colorFilter !== 'all') list = list.filter(t => t.priority === this.colorFilter);
                     return list;
                 }
             },
@@ -157,15 +162,11 @@
                 async addTask() {
                     if (!this.newTask.trim()) return;
                     this.loading = true;
-                    const originalTask = this.newTask;
-                    this.newTask = ''; // Clear immediately for feel
-                    
+                    const val = this.newTask;
+                    this.newTask = ''; 
                     try {
-                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: originalTask}) });
-                        const saved = await res.json();
-                        this.todos.push({...saved, editing: false});
-                        
-                        // Keep focus on input for Note 20 keyboard stability
+                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: val}) });
+                        this.todos.push({...await res.json(), editing: false});
                         this.$nextTick(() => { this.$refs.taskInput.focus(); });
                     } finally { this.loading = false; }
                 },
@@ -173,20 +174,14 @@
                     const { editing, ...cleanTodo } = todo;
                     await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cleanTodo) });
                 },
-                setPriority(todo, p) {
-                    todo.priority = p;
-                    this.updateTodo(todo);
-                },
-                stopEdit(todo) {
-                    todo.editing = false;
-                    this.updateTodo(todo);
-                },
+                setPriority(todo, p) { todo.priority = p; this.updateTodo(todo); },
+                stopEdit(todo) { todo.editing = false; this.updateTodo(todo); },
                 async deleteTodo(id) {
                     await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
                     this.todos = this.todos.filter(t => t.id !== id);
                 },
                 async deleteAll() {
-                    if (confirm("Clear your entire workspace?")) {
+                    if (confirm("Reset Workspace?")) {
                         await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
                         this.todos = [];
                     }
