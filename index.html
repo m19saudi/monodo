@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v2.4</title>
+    <title>MonoDo Elite | v2.5</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -80,7 +80,7 @@
         </div>
 
         <div class="container todo-card mt-4 pb-5">
-            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5">
+            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5 animate__animated animate__fadeIn">
                 <i class="fa-solid fa-clipboard-check fa-4x mb-3"></i>
                 <p>Nothing found in {{ tab }}</p>
             </div>
@@ -97,7 +97,7 @@
                         <div class="flex-grow-1">
                             <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autofocus>
                             <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" class="fw-semibold" @dblclick="element.editing = true">
-                                {{ element.text || 'Untitled Task' }}
+                                {{ element.text }}
                             </span>
                             
                             <div v-if="element.showPicker" class="priority-picker">
@@ -115,121 +115,100 @@
         </div>
     </div>
 
-<script>
-    const API_URL = '/api/todo';
-    const { createApp } = Vue;
+    <script>
+        const API_URL = '/api/todo';
+        const { createApp } = Vue;
 
-    // 1. Wait for the window to load so the CDN scripts are ready
-    window.onload = () => {
-        
-        // 2. Verify the library exists (Check your console if this fails)
-        if (!window.vuedraggable) {
-            console.error("Vuedraggable library not found. Check your CDN links in the <head>.");
-            return;
-        }
+        window.onload = () => {
+            // Find the draggable library from the global window object
+            const draggableComponent = window.vuedraggable;
 
-        const app = createApp({
-            data() {
-                return { 
-                    todos: [], 
-                    newTask: '', 
-                    tab: 'all', 
-                    loading: false, 
-                    theme: 'dark' 
-                };
-            },
-            computed: {
-                filteredTodos() {
-                    let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
-                    if (this.tab === 'pending') return list.filter(t => !t.completed);
-                    if (this.tab === 'done') return list.filter(t => t.completed);
-                    return list;
-                }
-            },
-            methods: {
-                async fetchTodos() {
-                    this.loading = true;
-                    try {
-                        const res = await fetch(API_URL);
-                        const data = await res.json();
-                        this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
-                    } catch(e) { console.error("Load Error:", e); }
-                    finally { this.loading = false; }
+            const app = createApp({
+                data() {
+                    return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
                 },
-                async addTask() {
-                    if (!this.newTask.trim()) return;
-                    this.loading = true;
-                    try {
-                        const res = await fetch(API_URL, { 
-                            method: 'POST', 
-                            headers: {'Content-Type': 'application/json'}, 
-                            body: JSON.stringify({text: this.newTask}) 
-                        });
-                        const newItem = await res.json();
-                        this.todos.push({...newItem, editing: false, showPicker: false});
-                        this.newTask = '';
-                    } catch(e) { console.error("Add Error:", e); }
-                    finally { this.loading = false; }
-                },
-                shouldShow(todo) {
-                    if (this.tab === 'pending') return !todo.completed;
-                    if (this.tab === 'done') return todo.completed;
-                    return true;
-                },
-                async updateTodo(todo) {
-                    const { editing, showPicker, ...cleanTodo } = todo;
-                    await fetch(API_URL, { 
-                        method: 'PUT', 
-                        headers: {'Content-Type': 'application/json'}, 
-                        body: JSON.stringify(cleanTodo) 
-                    });
-                },
-                togglePicker(todo) {
-                    this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
-                    todo.showPicker = !todo.showPicker;
-                },
-                setPriority(todo, p) {
-                    todo.priority = p;
-                    todo.showPicker = false;
-                    this.updateTodo(todo);
-                },
-                stopEdit(todo) {
-                    todo.editing = false;
-                    this.updateTodo(todo);
-                },
-                async deleteTodo(id) {
-                    await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
-                    this.todos = this.todos.filter(t => t.id !== id);
-                },
-                async deleteAll() {
-                    if (confirm("Delete all tasks?")) {
-                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
-                        this.todos = [];
+                computed: {
+                    filteredTodos() {
+                        let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                        if (this.tab === 'pending') return list.filter(t => !t.completed);
+                        if (this.tab === 'done') return list.filter(t => t.completed);
+                        return list;
                     }
                 },
-                toggleTheme() {
-                    this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                    document.documentElement.setAttribute('data-theme', this.theme);
-                },
-                saveOrder() {
-                    this.todos.forEach((todo, index) => {
-                        todo.order = index;
+                methods: {
+                    async fetchTodos() {
+                        this.loading = true;
+                        try {
+                            const res = await fetch(API_URL);
+                            const data = await res.json();
+                            this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
+                        } catch(e) { console.error("Fetch Error:", e); }
+                        finally { this.loading = false; }
+                    },
+                    async addTask() {
+                        if (!this.newTask.trim()) return;
+                        this.loading = true;
+                        try {
+                            const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
+                            const newItem = await res.json();
+                            this.todos.push({...newItem, editing: false, showPicker: false});
+                            this.newTask = '';
+                        } catch(e) { console.error("Add Error:", e); }
+                        finally { this.loading = false; }
+                    },
+                    shouldShow(todo) {
+                        if (this.tab === 'pending') return !todo.completed;
+                        if (this.tab === 'done') return todo.completed;
+                        return true;
+                    },
+                    async updateTodo(todo) {
+                        const { editing, showPicker, ...cleanTodo } = todo;
+                        await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cleanTodo) });
+                    },
+                    togglePicker(todo) {
+                        this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
+                        todo.showPicker = !todo.showPicker;
+                    },
+                    setPriority(todo, p) {
+                        todo.priority = p;
+                        todo.showPicker = false;
                         this.updateTodo(todo);
-                    });
+                    },
+                    stopEdit(todo) {
+                        todo.editing = false;
+                        this.updateTodo(todo);
+                    },
+                    async deleteTodo(id) {
+                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+                        this.todos = this.todos.filter(t => t.id !== id);
+                    },
+                    async deleteAll() {
+                        if (confirm("Delete all?")) {
+                            await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
+                            this.todos = [];
+                        }
+                    },
+                    toggleTheme() {
+                        this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                        document.documentElement.setAttribute('data-theme', this.theme);
+                    },
+                    saveOrder() {
+                        this.todos.forEach((todo, index) => {
+                            todo.order = index;
+                            this.updateTodo(todo);
+                        });
+                    }
+                },
+                mounted() { 
+                    this.fetchTodos();
+                    document.documentElement.setAttribute('data-theme', 'dark');
                 }
-            },
-            mounted() { 
-                this.fetchTodos();
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
-        });
+            });
 
-        // 3. GLOBAL REGISTRATION (This is the magic line)
-        app.component('vuedraggable', window.vuedraggable);
-
-        // 4. Mount the app
-        app.mount('#app');
-    };
-</script>
+            // Register vuedraggable globally so Vue recognizes the tag
+            app.component('vuedraggable', draggableComponent);
+            app.mount('#app');
+        };
+    </script>
 </body>
 </html>
