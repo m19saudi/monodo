@@ -115,107 +115,121 @@
         </div>
     </div>
 
-    <script>
-        const API_URL = '/api/todo';
-        const { createApp } = Vue;
+<script>
+    const API_URL = '/api/todo';
+    const { createApp } = Vue;
 
-        // Ensure everything is ready before Vue starts
-        window.onload = () => {
-            const app = createApp({
-                // CRITICAL FIX: Direct link to the global draggable object
-                components: {
-                    'vuedraggable': window.vuedraggable
-                },
-                data() {
-                    return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
-                },
-                computed: {
-                    filteredTodos() {
-                        let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
-                        if (this.tab === 'pending') return list.filter(t => !t.completed);
-                        if (this.tab === 'done') return list.filter(t => t.completed);
-                        return list;
-                    }
-                },
-                methods: {
-                    async fetchTodos() {
-                        this.loading = true;
-                        try {
-                            const res = await fetch(API_URL);
-                            const data = await res.json();
-                            this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
-                        } catch(e) { console.error("Load Error:", e); }
-                        finally { this.loading = false; }
-                    },
-                    async addTask() {
-                        if (!this.newTask.trim()) return;
-                        this.loading = true;
-                        try {
-                            const res = await fetch(API_URL, { 
-                                method: 'POST', 
-                                headers: {'Content-Type': 'application/json'}, 
-                                body: JSON.stringify({text: this.newTask}) 
-                            });
-                            const newItem = await res.json();
-                            this.todos.push({...newItem, editing: false, showPicker: false});
-                            this.newTask = '';
-                        } catch(e) { console.error("Add Error:", e); }
-                        finally { this.loading = false; }
-                    },
-                    shouldShow(todo) {
-                        if (this.tab === 'pending') return !todo.completed;
-                        if (this.tab === 'done') return todo.completed;
-                        return true;
-                    },
-                    async updateTodo(todo) {
-                        const { editing, showPicker, ...cleanTodo } = todo;
-                        await fetch(API_URL, { 
-                            method: 'PUT', 
-                            headers: {'Content-Type': 'application/json'}, 
-                            body: JSON.stringify(cleanTodo) 
-                        });
-                    },
-                    togglePicker(todo) {
-                        this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
-                        todo.showPicker = !todo.showPicker;
-                    },
-                    setPriority(todo, p) {
-                        todo.priority = p;
-                        todo.showPicker = false;
-                        this.updateTodo(todo);
-                    },
-                    stopEdit(todo) {
-                        todo.editing = false;
-                        this.updateTodo(todo);
-                    },
-                    async deleteTodo(id) {
-                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
-                        this.todos = this.todos.filter(t => t.id !== id);
-                    },
-                    async deleteAll() {
-                        if (confirm("Delete all tasks permanently?")) {
-                            await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
-                            this.todos = [];
-                        }
-                    },
-                    toggleTheme() {
-                        this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                        document.documentElement.setAttribute('data-theme', this.theme);
-                    },
-                    saveOrder() {
-                        this.todos.forEach((todo, index) => {
-                            todo.order = index;
-                            this.updateTodo(todo);
-                        });
-                    }
-                },
-                mounted() { 
-                    this.fetchTodos();
-                    document.documentElement.setAttribute('data-theme', 'dark');
+    // 1. Wait for the window to load so the CDN scripts are ready
+    window.onload = () => {
+        
+        // 2. Verify the library exists (Check your console if this fails)
+        if (!window.vuedraggable) {
+            console.error("Vuedraggable library not found. Check your CDN links in the <head>.");
+            return;
+        }
+
+        const app = createApp({
+            data() {
+                return { 
+                    todos: [], 
+                    newTask: '', 
+                    tab: 'all', 
+                    loading: false, 
+                    theme: 'dark' 
+                };
+            },
+            computed: {
+                filteredTodos() {
+                    let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
+                    if (this.tab === 'pending') return list.filter(t => !t.completed);
+                    if (this.tab === 'done') return list.filter(t => t.completed);
+                    return list;
                 }
-            });
-            app.mount('#app');
-        };
-    </script>
+            },
+            methods: {
+                async fetchTodos() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch(API_URL);
+                        const data = await res.json();
+                        this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
+                    } catch(e) { console.error("Load Error:", e); }
+                    finally { this.loading = false; }
+                },
+                async addTask() {
+                    if (!this.newTask.trim()) return;
+                    this.loading = true;
+                    try {
+                        const res = await fetch(API_URL, { 
+                            method: 'POST', 
+                            headers: {'Content-Type': 'application/json'}, 
+                            body: JSON.stringify({text: this.newTask}) 
+                        });
+                        const newItem = await res.json();
+                        this.todos.push({...newItem, editing: false, showPicker: false});
+                        this.newTask = '';
+                    } catch(e) { console.error("Add Error:", e); }
+                    finally { this.loading = false; }
+                },
+                shouldShow(todo) {
+                    if (this.tab === 'pending') return !todo.completed;
+                    if (this.tab === 'done') return todo.completed;
+                    return true;
+                },
+                async updateTodo(todo) {
+                    const { editing, showPicker, ...cleanTodo } = todo;
+                    await fetch(API_URL, { 
+                        method: 'PUT', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify(cleanTodo) 
+                    });
+                },
+                togglePicker(todo) {
+                    this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
+                    todo.showPicker = !todo.showPicker;
+                },
+                setPriority(todo, p) {
+                    todo.priority = p;
+                    todo.showPicker = false;
+                    this.updateTodo(todo);
+                },
+                stopEdit(todo) {
+                    todo.editing = false;
+                    this.updateTodo(todo);
+                },
+                async deleteTodo(id) {
+                    await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+                    this.todos = this.todos.filter(t => t.id !== id);
+                },
+                async deleteAll() {
+                    if (confirm("Delete all tasks?")) {
+                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
+                        this.todos = [];
+                    }
+                },
+                toggleTheme() {
+                    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', this.theme);
+                },
+                saveOrder() {
+                    this.todos.forEach((todo, index) => {
+                        todo.order = index;
+                        this.updateTodo(todo);
+                    });
+                }
+            },
+            mounted() { 
+                this.fetchTodos();
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        });
+
+        // 3. GLOBAL REGISTRATION (This is the magic line)
+        app.component('vuedraggable', window.vuedraggable);
+
+        // 4. Mount the app
+        app.mount('#app');
+    };
+</script>
 </body>
 </html>
