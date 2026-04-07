@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v4.0</title>
+    <title>MonoDo Elite | v4.1</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -17,54 +17,54 @@
         [data-theme="light"] {
             --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --border: rgba(0,0,0,0.1);
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; overflow-x: hidden; }
         
         .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 1px solid var(--border); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
 
-        /* RELAXED TASK DESIGN */
+        /* UNIFORM RELAXED DESIGN */
         .todo-item { 
-            background: var(--card); border-radius: 18px; margin-bottom: 16px; 
-            padding: 22px 20px; display: flex; align-items: center; justify-content: space-between;
+            background: var(--card); border-radius: 20px; margin-bottom: 16px; 
+            padding: 24px 20px; display: flex; align-items: center; justify-content: space-between;
             border: 1px solid var(--border); transition: 0.2s; 
-            cursor: grab; min-height: 90px; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            position: relative;
+            cursor: grab; min-height: 100px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            position: relative; touch-action: none; /* Required for mobile drag */
         }
-        .todo-item:active { cursor: grabbing; transform: scale(0.98); z-index: 10; }
+        .todo-item:active { cursor: grabbing; transform: scale(0.98); z-index: 10; opacity: 0.7; }
         
-        /* Vivid Side Borders & Glows */
-        .p-3 { border-left: 10px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.1) 0%, var(--card) 60%); }
-        .p-2 { border-left: 10px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.1) 0%, var(--card) 60%); }
-        .p-1 { border-left: 10px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.1) 0%, var(--card) 60%); }
+        /* Vivid Side Borders (Kept inside the border radius) */
+        .p-3 { border-left: 10px solid var(--red); background: linear-gradient(90deg, rgba(255, 77, 77, 0.08) 0%, var(--card) 60%); }
+        .p-2 { border-left: 10px solid var(--orange); background: linear-gradient(90deg, rgba(255, 165, 2, 0.08) 0%, var(--card) 60%); }
+        .p-1 { border-left: 10px solid var(--green); background: linear-gradient(90deg, rgba(46, 213, 115, 0.08) 0%, var(--card) 60%); }
         .p-0 { border-left: 10px solid var(--grey); }
 
-        /* FIXED ICONS ON RIGHT */
-        .action-zone { display: flex; gap: 12px; align-items: center; flex-shrink: 0; margin-left: 15px; }
+        /* LOCKED ACTION ZONE */
+        .action-zone { display: flex; gap: 10px; align-items: center; flex-shrink: 0; margin-left: 15px; }
         .icon-btn { 
-            font-size: 1.2rem; cursor: pointer; transition: 0.2s; opacity: 0.5; 
-            width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
-            border-radius: 50%;
+            font-size: 1.25rem; cursor: pointer; transition: 0.2s; opacity: 0.5; 
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
         }
-        .icon-btn:hover, .icon-btn:active { opacity: 1; background: rgba(255,255,255,0.05); transform: scale(1.15); }
-        .btn-edit:hover { color: var(--blue); box-shadow: 0 0 15px var(--blue); }
-        .btn-delete:hover { color: var(--red); box-shadow: 0 0 15px var(--red); }
+        .icon-btn:active { opacity: 1; transform: scale(1.2); }
+        .btn-edit:active { color: var(--blue); text-shadow: 0 0 15px var(--blue); }
+        .btn-delete:active { color: var(--red); text-shadow: 0 0 15px var(--red); }
 
-        .content-zone { flex-grow: 1; overflow: hidden; }
-        .task-text { font-size: 1.15rem; font-weight: 500; word-wrap: break-word; display: block; }
+        .content-zone { flex-grow: 1; overflow: hidden; padding-left: 5px; }
+        .task-text { font-size: 1.15rem; font-weight: 500; word-wrap: break-word; display: block; line-height: 1.4; }
         .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; font-size: 1.15rem; }
 
-        /* FILTERS */
-        .status-tabs { display: flex; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 5px; gap: 5px; margin-bottom: 15px; }
-        .status-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.8rem; font-weight: 800; border-radius: 8px; cursor: pointer; opacity: 0.4; transition: 0.3s; }
-        .status-tab.active { background: var(--blue); color: white; opacity: 1; }
-
-        .priority-dots { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
-        .filter-dot { width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; position: relative; }
-        .filter-dot.active { border-color: white; transform: scale(1.2); }
-
-        .p-selector { display: flex; gap: 12px; margin-top: 15px; }
+        /* CONTAINED COLOR SELECTOR */
+        .p-selector { display: flex; gap: 12px; margin-top: 14px; padding: 2px; }
         .p-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid rgba(255,255,255,0.1); transition: 0.2s; }
-        .p-dot.active { border-color: white; transform: scale(1.2); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+        .p-dot.active { border-color: white; transform: scale(1.25); box-shadow: 0 0 10px rgba(255,255,255,0.4); }
+
+        /* TABS */
+        .status-tabs { display: flex; background: rgba(0,0,0,0.2); border-radius: 14px; padding: 6px; gap: 6px; margin-bottom: 15px; }
+        .status-tab { flex: 1; text-align: center; padding: 10px; font-size: 0.75rem; font-weight: 900; border-radius: 10px; cursor: pointer; opacity: 0.4; transition: 0.3s; }
+        .status-tab.active { background: var(--blue); color: white; opacity: 1; box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3); }
+
+        .priority-dots { display: flex; justify-content: center; gap: 18px; margin-bottom: 10px; }
+        .filter-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .filter-dot.active { border-color: white; transform: scale(1.2); }
     </style>
 </head>
 <body>
@@ -72,15 +72,15 @@
         <div class="app-header shadow-sm">
             <div class="container todo-card">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-check-double text-info me-2"></i>MonoDo Elite</h4>
+                    <h4 class="fw-bold m-0"><i class="fa-solid fa-bolt-lightning text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex gap-4">
-                        <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer; font-size: 1.3rem;"></i>
-                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer; font-size: 1.3rem;"></i>
+                        <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" style="cursor:pointer; font-size: 1.4rem;"></i>
+                        <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer; font-size: 1.4rem;"></i>
                     </div>
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control p-3" placeholder="Add a new task...">
+                    <input type="text" v-model="newTask" ref="taskInput" @keyup.enter="addTask" class="form-control p-3 bg-transparent text-white" placeholder="What's the mission?">
                     <button @click="addTask" class="btn btn-info px-4 text-white fw-bold">ADD</button>
                 </div>
 
@@ -96,11 +96,6 @@
         </div>
 
         <div class="container todo-card mt-4 pb-5">
-            <div v-if="filteredTodos.length === 0" class="text-center py-5 opacity-25">
-                <i class="fa-solid fa-box-open fa-3x mb-3"></i>
-                <p>No tasks found in this view.</p>
-            </div>
-
             <div v-for="(todo, index) in filteredTodos" 
                  :key="todo.id" 
                  class="todo-item" 
@@ -111,7 +106,7 @@
                  @dragenter="onDragEnter(index)"
                  @dragend="onDragEnd">
                 
-                <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="updateTodo(todo)" style="width:26px; height:26px; flex-shrink:0; cursor:pointer;">
+                <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="updateTodo(todo)" style="width:28px; height:28px; flex-shrink:0;">
                 
                 <div class="content-zone">
                     <input v-if="todo.editing" v-model="todo.text" @blur="stopEdit(todo)" @keyup.enter="stopEdit(todo)" class="edit-input" autofocus>
@@ -142,42 +137,29 @@
 
         createApp({
             data() {
-                return { 
-                    todos: [], newTask: '', theme: 'dark', colorFilter: 'all', statusFilter: 'all',
-                    dragSourceIndex: null
-                };
+                return { todos: [], newTask: '', theme: 'dark', colorFilter: 'all', statusFilter: 'all', dragSourceIndex: null };
             },
             computed: {
                 filteredTodos() {
-                    let list = [...this.todos];
-                    // Keep the physical order users set by dragging
-                    list.sort((a, b) => (a.order || 0) - (b.order || 0));
-                    
+                    let list = [...this.todos].sort((a, b) => (a.order || 0) - (b.order || 0));
                     if (this.statusFilter === 'pending') list = list.filter(t => !t.completed);
                     if (this.statusFilter === 'done') list = list.filter(t => t.completed);
                     if (this.colorFilter !== 'all') list = list.filter(t => t.priority === this.colorFilter);
-                    
                     return list;
                 }
             },
             methods: {
                 async fetchTodos() {
-                    try {
-                        const res = await fetch(API_URL);
-                        const data = await res.json();
-                        this.todos = data.map(t => ({...t, editing: false}));
-                    } catch (e) { console.error("Fetch failed", e); }
+                    const res = await fetch(API_URL);
+                    const data = await res.json();
+                    this.todos = data.map(t => ({...t, editing: false}));
                 },
                 async addTask() {
                     if (!this.newTask.trim()) return;
-                    const val = this.newTask;
-                    this.newTask = '';
-                    try {
-                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: val, order: this.todos.length}) });
-                        const saved = await res.json();
-                        this.todos.push({...saved, editing: false});
-                        this.$nextTick(() => this.$refs.taskInput.focus());
-                    } catch (e) { console.error("Add failed", e); }
+                    const val = this.newTask; this.newTask = '';
+                    const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: val, order: this.todos.length}) });
+                    this.todos.push({...await res.json(), editing: false});
+                    this.$nextTick(() => this.$refs.taskInput.focus());
                 },
                 async updateTodo(todo) {
                     const { editing, ...cleanTodo } = todo;
@@ -188,7 +170,7 @@
                     this.todos = this.todos.filter(t => t.id !== id);
                 },
                 async deleteAll() {
-                    if (confirm("Clear all tasks?")) {
+                    if (confirm("Wipe workspace?")) {
                         await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
                         this.todos = [];
                     }
@@ -199,31 +181,19 @@
                     this.theme = this.theme === 'dark' ? 'light' : 'dark';
                     document.documentElement.setAttribute('data-theme', this.theme);
                 },
-                // CUSTOM SMOOTH DRAG LOGIC
-                onDragStart(e, index) {
-                    this.dragSourceIndex = index;
-                    e.dataTransfer.effectAllowed = 'move';
-                },
+                onDragStart(e, index) { this.dragSourceIndex = index; e.dataTransfer.effectAllowed = 'move'; },
                 onDragEnter(index) {
                     if (this.dragSourceIndex === null || this.dragSourceIndex === index) return;
                     const items = [...this.todos].sort((a,b) => (a.order || 0) - (b.order || 0));
                     const movedItem = items.splice(this.dragSourceIndex, 1)[0];
                     items.splice(index, 0, movedItem);
-                    
-                    // Update internal orders
                     items.forEach((item, i) => item.order = i);
                     this.todos = items;
                     this.dragSourceIndex = index;
                 },
-                onDragEnd() {
-                    this.dragSourceIndex = null;
-                    this.todos.forEach(t => this.updateTodo(t));
-                }
+                onDragEnd() { this.dragSourceIndex = null; this.todos.forEach(t => this.updateTodo(t)); }
             },
-            mounted() { 
-                this.fetchTodos();
-                document.documentElement.setAttribute('data-theme', 'dark');
-            }
+            mounted() { this.fetchTodos(); document.documentElement.setAttribute('data-theme', 'dark'); }
         }).mount('#app');
     </script>
 </body>
