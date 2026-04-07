@@ -1,28 +1,51 @@
-<script>
-    // AUTOMATIC URL DETECTION
-    // This finds the current domain (e.g., monodo.vercel.app) 
-    // and attaches the /api/todo path to it.
-    const API_URL = `${window.location.origin}/api/todo`;
-
-    const { createApp } = Vue;
-    createApp({
-        data() {
-            return { todos: [], newTask: '', loading: false };
-        },
-        methods: {
-            async fetchTodos() {
-                this.loading = true;
-                try {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonoDo | Modern Task Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; height: 100vh; display: flex; align-items: center; }
+        .todo-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; margin: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .form-control { background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; color: white; border-radius: 10px; }
+        .form-control:focus { background: rgba(15, 23, 42, 0.8); color: white; border-color: #38bdf8; box-shadow: none; }
+        .todo-item { background: rgba(51, 65, 85, 0.3); border-radius: 12px; margin-bottom: 10px; padding: 12px 15px; display: flex; align-items: center; transition: 0.3s; }
+        .done-text { text-decoration: line-through; opacity: 0.5; }
+        .btn-add { background: #38bdf8; border: none; font-weight: 600; color: white; }
+        .btn-delete { color: #f43f5e; background: none; border: none; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <div class="todo-card">
+            <h3 class="mb-4 fw-bold"><i class="fa-solid fa-layer-group me-2 text-info"></i> MonoDo</h3>
+            <div class="input-group mb-4">
+                <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="Add a task...">
+                <button @click="addTask" class="btn btn-add px-4" :disabled="loading">Add</button>
+            </div>
+            <div class="todo-list">
+                <div v-for="todo in todos" :key="todo.id" class="todo-item">
+                    <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="toggleTodo(todo)">
+                    <span class="flex-grow-1" :class="{ 'done-text': todo.completed }">{{ todo.text }}</span>
+                    <button @click="deleteTodo(todo.id)" class="btn-delete"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const API_URL = `${window.location.origin}/api/todo`;
+        const { createApp } = Vue;
+        createApp({
+            data() { return { todos: [], newTask: '', loading: false }; },
+            methods: {
+                async fetchTodos() {
                     const res = await fetch(API_URL);
-                    if (!res.ok) throw new Error();
                     this.todos = await res.json();
-                } catch (e) { console.error("Backend not reached at:", API_URL); }
-                this.loading = false;
-            },
-            async addTask() {
-                if (!this.newTask.trim()) return;
-                this.loading = true;
-                try {
+                },
+                async addTask() {
+                    if (!this.newTask.trim()) return;
                     const res = await fetch(API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -31,25 +54,17 @@
                     const newItem = await res.json();
                     this.todos.unshift(newItem);
                     this.newTask = '';
-                } catch (e) { alert("Error adding task. Is the backend deployed?"); }
-                this.loading = false;
+                },
+                async toggleTodo(todo) {
+                    await fetch(API_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: todo.id, completed: todo.completed }) });
+                },
+                async deleteTodo(id) {
+                    await fetch(API_URL, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+                    this.todos = this.todos.filter(t => t.id !== id);
+                }
             },
-            async toggleTodo(todo) {
-                await fetch(API_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: todo.id, completed: todo.completed })
-                });
-            },
-            async deleteTodo(id) {
-                await fetch(API_URL, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id })
-                });
-                this.todos = this.todos.filter(t => t.id !== id);
-            }
-        },
-        mounted() { this.fetchTodos(); }
-    }).mount('#app');
-</script>
+            mounted() { this.fetchTodos(); }
+        }).mount('#app');
+    </script>
+</body>
+</html>
