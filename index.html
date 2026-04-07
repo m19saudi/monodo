@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v2.3</title>
+    <title>MonoDo Elite | v2.4</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,7 +23,6 @@
         }
         body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; overflow-x: hidden; }
         
-        /* Sticky Header */
         .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 2px solid var(--blue); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
 
@@ -31,23 +30,19 @@
         .form-control { background: transparent; border: none; color: var(--text); padding: 12px; }
         .form-control:focus { background: transparent; color: var(--text); box-shadow: none; }
 
-        /* Tabs */
         .nav-pills { background: var(--card); border-radius: 12px; padding: 5px; margin-bottom: 10px; border: 1px solid var(--border); }
         .nav-pills .nav-link { color: var(--text); opacity: 0.5; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
         .nav-pills .nav-link.active { background: var(--blue) !important; color: white !important; opacity: 1; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
 
-        /* Task Items */
         .todo-item { 
             background: var(--card); border-left: 5px solid transparent; border-radius: 12px; 
             margin-bottom: 12px; padding: 16px; display: flex; align-items: center; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; cursor: grab;
         }
-        .todo-item:active { cursor: grabbing; transform: scale(0.98); }
         .item-priority-3 { border-left-color: var(--red); }
         .item-priority-2 { border-left-color: var(--orange); }
         .item-priority-1 { border-left-color: var(--green); }
         
-        /* Priority UI */
         .priority-picker { display: flex; gap: 10px; margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 10px; width: fit-content; }
         .p-square { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
         .p-active { border-color: var(--text); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
@@ -61,7 +56,7 @@
         <div class="app-header shadow-sm">
             <div class="container todo-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-bolt-lightning text-info me-2"></i>MonoDo Elite</h4>
+                    <h4 class="fw-bold m-0"><i class="fa-solid fa-layer-group text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex align-items-center gap-3">
                         <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" class="theme-toggle"></i>
                         <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
@@ -85,16 +80,16 @@
         </div>
 
         <div class="container todo-card mt-4 pb-5">
-            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5 animate__animated animate__fadeIn">
+            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5">
                 <i class="fa-solid fa-clipboard-check fa-4x mb-3"></i>
                 <p>Nothing found in {{ tab }}</p>
             </div>
 
-            <draggable v-model="todos" item-key="id" handle=".todo-item" @end="saveOrder">
+            <vuedraggable v-model="todos" item-key="id" handle=".todo-item" @end="saveOrder">
                 <template #item="{element}">
                     <div v-if="shouldShow(element)" 
                          class="todo-item animate__animated animate__fadeInUp" 
-                         :class="'item-priority-'+element.priority" 
+                         :class="'item-priority-'+(element.priority || 0)" 
                          @contextmenu.prevent="togglePicker(element)">
                         
                         <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)">
@@ -102,7 +97,7 @@
                         <div class="flex-grow-1">
                             <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autofocus>
                             <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" class="fw-semibold" @dblclick="element.editing = true">
-                                {{ element.text }}
+                                {{ element.text || 'Untitled Task' }}
                             </span>
                             
                             <div v-if="element.showPicker" class="priority-picker">
@@ -116,7 +111,7 @@
                         </div>
                     </div>
                 </template>
-            </draggable>
+            </vuedraggable>
         </div>
     </div>
 
@@ -124,10 +119,13 @@
         const API_URL = '/api/todo';
         const { createApp } = Vue;
 
-        // Ensure scripts are loaded
+        // Ensure everything is ready before Vue starts
         window.onload = () => {
             const app = createApp({
-                components: { 'draggable': window.vuedraggable },
+                // CRITICAL FIX: Direct link to the global draggable object
+                components: {
+                    'vuedraggable': window.vuedraggable
+                },
                 data() {
                     return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
                 },
@@ -146,7 +144,7 @@
                             const res = await fetch(API_URL);
                             const data = await res.json();
                             this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
-                        } catch(e) { console.error(e); }
+                        } catch(e) { console.error("Load Error:", e); }
                         finally { this.loading = false; }
                     },
                     async addTask() {
@@ -161,7 +159,7 @@
                             const newItem = await res.json();
                             this.todos.push({...newItem, editing: false, showPicker: false});
                             this.newTask = '';
-                        } catch(e) { console.error(e); }
+                        } catch(e) { console.error("Add Error:", e); }
                         finally { this.loading = false; }
                     },
                     shouldShow(todo) {
@@ -195,7 +193,7 @@
                         this.todos = this.todos.filter(t => t.id !== id);
                     },
                     async deleteAll() {
-                        if (confirm("Delete all?")) {
+                        if (confirm("Delete all tasks permanently?")) {
                             await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
                             this.todos = [];
                         }
