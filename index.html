@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MonoDo Elite | v2.5</title>
+    <title>MonoDo Elite | v2.6</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vuedraggable/4.1.0/vuedraggable.umd.min.js"></script>
 
     <style>
         :root { 
@@ -21,7 +19,7 @@
         [data-theme="light"] {
             --bg: #f1f5f9; --card: rgba(255, 255, 255, 0.9); --text: #1e293b; --border: rgba(0,0,0,0.1);
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; overflow-x: hidden; }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.3s; min-height: 100vh; }
         
         .app-header { position: sticky; top: 0; z-index: 1000; background: var(--bg); backdrop-filter: blur(15px); padding: 15px 0; border-bottom: 2px solid var(--blue); }
         .todo-card { max-width: 550px; margin: auto; padding: 0 15px; }
@@ -31,23 +29,22 @@
         .form-control:focus { background: transparent; color: var(--text); box-shadow: none; }
 
         .nav-pills { background: var(--card); border-radius: 12px; padding: 5px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .nav-pills .nav-link { color: var(--text); opacity: 0.5; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; }
-        .nav-pills .nav-link.active { background: var(--blue) !important; color: white !important; opacity: 1; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+        .nav-pills .nav-link { color: var(--text); opacity: 0.5; border-radius: 8px; cursor: pointer; font-weight: 700; transition: 0.3s; font-size: 0.85rem; border: none !important; }
+        .nav-pills .nav-link.active { background: var(--blue) !important; color: white !important; opacity: 1; }
 
         .todo-item { 
             background: var(--card); border-left: 5px solid transparent; border-radius: 12px; 
             margin-bottom: 12px; padding: 16px; display: flex; align-items: center; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s;
         }
         .item-priority-3 { border-left-color: var(--red); }
         .item-priority-2 { border-left-color: var(--orange); }
         .item-priority-1 { border-left-color: var(--green); }
         
-        .priority-picker { display: flex; gap: 10px; margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.1); border-radius: 10px; width: fit-content; }
-        .p-square { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .p-active { border-color: var(--text); box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+        .priority-picker { display: flex; gap: 8px; margin-top: 10px; }
+        .p-dot { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; border: 1px solid white; }
 
-        .theme-toggle { cursor: pointer; font-size: 1.3rem; transition: 0.3s; }
+        .theme-toggle { cursor: pointer; font-size: 1.3rem; }
         .edit-input { background: transparent; border: none; border-bottom: 2px solid var(--blue); color: var(--text); width: 100%; outline: none; }
     </style>
 </head>
@@ -56,7 +53,7 @@
         <div class="app-header shadow-sm">
             <div class="container todo-card">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="fw-bold m-0"><i class="fa-solid fa-layer-group text-info me-2"></i>MonoDo Elite</h4>
+                    <h4 class="fw-bold m-0"><i class="fa-solid fa-check-double text-info me-2"></i>MonoDo Elite</h4>
                     <div class="d-flex align-items-center gap-3">
                         <i @click="toggleTheme" :class="theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon'" class="theme-toggle"></i>
                         <i @click="deleteAll" class="fa-solid fa-trash-can text-danger" style="cursor:pointer"></i>
@@ -64,7 +61,7 @@
                 </div>
                 
                 <div class="input-group mb-3">
-                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="Add a task...">
+                    <input type="text" v-model="newTask" @keyup.enter="addTask" class="form-control" placeholder="What needs to be done?">
                     <button @click="addTask" class="btn btn-info px-4 text-white fw-bold" :disabled="loading">
                         <span v-if="loading" class="spinner-border spinner-border-sm"></span>
                         <span v-else>ADD</span>
@@ -80,38 +77,33 @@
         </div>
 
         <div class="container todo-card mt-4 pb-5">
-            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5 animate__animated animate__fadeIn">
-                <i class="fa-solid fa-clipboard-check fa-4x mb-3"></i>
-                <p>Nothing found in {{ tab }}</p>
+            <div v-if="filteredTodos.length === 0 && !loading" class="text-center opacity-25 py-5">
+                <i class="fa-solid fa-wind fa-3x mb-3"></i>
+                <p>No tasks found</p>
             </div>
 
-            <vuedraggable v-model="todos" item-key="id" handle=".todo-item" @end="saveOrder">
-                <template #item="{element}">
-                    <div v-if="shouldShow(element)" 
-                         class="todo-item animate__animated animate__fadeInUp" 
-                         :class="'item-priority-'+(element.priority || 0)" 
-                         @contextmenu.prevent="togglePicker(element)">
-                        
-                        <input type="checkbox" class="form-check-input me-3" v-model="element.completed" @change="updateTodo(element)">
-                        
-                        <div class="flex-grow-1">
-                            <input v-if="element.editing" v-model="element.text" @blur="stopEdit(element)" @keyup.enter="stopEdit(element)" class="edit-input" autofocus>
-                            <span v-else :class="{'text-decoration-line-through opacity-50': element.completed}" class="fw-semibold" @dblclick="element.editing = true">
-                                {{ element.text }}
-                            </span>
-                            
-                            <div v-if="element.showPicker" class="priority-picker">
-                                <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(element, p)" class="p-square" :style="{background: p==3?'#ff4d4d':p==2?'#ffa502':p==1?'#2ed573':'#64748b'}" :class="{'p-active': element.priority==p}"></div>
-                            </div>
-                        </div>
-
-                        <div class="d-flex gap-3 ms-2">
-                            <i @click="element.editing = !element.editing" class="fa-solid fa-pen-to-square opacity-25" style="cursor:pointer"></i>
-                            <i @click="deleteTodo(element.id)" class="fa-solid fa-trash opacity-25 text-danger" style="cursor:pointer"></i>
-                        </div>
+            <div v-for="todo in filteredTodos" :key="todo.id" 
+                 class="todo-item animate__animated animate__fadeInUp" 
+                 :class="'item-priority-'+(todo.priority || 0)">
+                
+                <input type="checkbox" class="form-check-input me-3" v-model="todo.completed" @change="updateTodo(todo)">
+                
+                <div class="flex-grow-1">
+                    <input v-if="todo.editing" v-model="todo.text" @blur="stopEdit(todo)" @keyup.enter="stopEdit(todo)" class="edit-input" autofocus>
+                    <span v-else :class="{'text-decoration-line-through opacity-50': todo.completed}" class="fw-semibold" @dblclick="todo.editing = true">
+                        {{ todo.text }}
+                    </span>
+                    
+                    <div class="priority-picker">
+                        <div v-for="p in [3,2,1,0]" :key="p" @click="setPriority(todo, p)" class="p-dot" :style="{background: p==3?'#ff4d4d':p==2?'#ffa502':p==1?'#2ed573':'#64748b'}"></div>
                     </div>
-                </template>
-            </vuedraggable>
+                </div>
+
+                <div class="d-flex gap-3 ms-2">
+                    <i @click="todo.editing = !todo.editing" class="fa-solid fa-pen opacity-25" style="cursor:pointer"></i>
+                    <i @click="deleteTodo(todo.id)" class="fa-solid fa-trash opacity-25 text-danger" style="cursor:pointer"></i>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -119,96 +111,67 @@
         const API_URL = '/api/todo';
         const { createApp } = Vue;
 
-        window.onload = () => {
-            // Find the draggable library from the global window object
-            const draggableComponent = window.vuedraggable;
-
-            const app = createApp({
-                data() {
-                    return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
-                },
-                computed: {
-                    filteredTodos() {
-                        let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0) || (a.order || 0) - (b.order || 0));
-                        if (this.tab === 'pending') return list.filter(t => !t.completed);
-                        if (this.tab === 'done') return list.filter(t => t.completed);
-                        return list;
-                    }
-                },
-                methods: {
-                    async fetchTodos() {
-                        this.loading = true;
-                        try {
-                            const res = await fetch(API_URL);
-                            const data = await res.json();
-                            this.todos = data.map(t => ({...t, editing: false, showPicker: false}));
-                        } catch(e) { console.error("Fetch Error:", e); }
-                        finally { this.loading = false; }
-                    },
-                    async addTask() {
-                        if (!this.newTask.trim()) return;
-                        this.loading = true;
-                        try {
-                            const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
-                            const newItem = await res.json();
-                            this.todos.push({...newItem, editing: false, showPicker: false});
-                            this.newTask = '';
-                        } catch(e) { console.error("Add Error:", e); }
-                        finally { this.loading = false; }
-                    },
-                    shouldShow(todo) {
-                        if (this.tab === 'pending') return !todo.completed;
-                        if (this.tab === 'done') return todo.completed;
-                        return true;
-                    },
-                    async updateTodo(todo) {
-                        const { editing, showPicker, ...cleanTodo } = todo;
-                        await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cleanTodo) });
-                    },
-                    togglePicker(todo) {
-                        this.todos.forEach(t => { if(t.id !== todo.id) t.showPicker = false; });
-                        todo.showPicker = !todo.showPicker;
-                    },
-                    setPriority(todo, p) {
-                        todo.priority = p;
-                        todo.showPicker = false;
-                        this.updateTodo(todo);
-                    },
-                    stopEdit(todo) {
-                        todo.editing = false;
-                        this.updateTodo(todo);
-                    },
-                    async deleteTodo(id) {
-                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
-                        this.todos = this.todos.filter(t => t.id !== id);
-                    },
-                    async deleteAll() {
-                        if (confirm("Delete all?")) {
-                            await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
-                            this.todos = [];
-                        }
-                    },
-                    toggleTheme() {
-                        this.theme = this.theme === 'dark' ? 'light' : 'dark';
-                        document.documentElement.setAttribute('data-theme', this.theme);
-                    },
-                    saveOrder() {
-                        this.todos.forEach((todo, index) => {
-                            todo.order = index;
-                            this.updateTodo(todo);
-                        });
-                    }
-                },
-                mounted() { 
-                    this.fetchTodos();
-                    document.documentElement.setAttribute('data-theme', 'dark');
+        createApp({
+            data() {
+                return { todos: [], newTask: '', tab: 'all', loading: false, theme: 'dark' };
+            },
+            computed: {
+                filteredTodos() {
+                    let list = [...this.todos].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+                    if (this.tab === 'pending') return list.filter(t => !t.completed);
+                    if (this.tab === 'done') return list.filter(t => t.completed);
+                    return list;
                 }
-            });
-
-            // Register vuedraggable globally so Vue recognizes the tag
-            app.component('vuedraggable', draggableComponent);
-            app.mount('#app');
-        };
+            },
+            methods: {
+                async fetchTodos() {
+                    this.loading = true;
+                    try {
+                        const res = await fetch(API_URL);
+                        this.todos = (await res.json()).map(t => ({...t, editing: false}));
+                    } finally { this.loading = false; }
+                },
+                async addTask() {
+                    if (!this.newTask.trim()) return;
+                    this.loading = true;
+                    try {
+                        const res = await fetch(API_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: this.newTask}) });
+                        this.todos.push({...await res.json(), editing: false});
+                        this.newTask = '';
+                    } finally { this.loading = false; }
+                },
+                async updateTodo(todo) {
+                    const { editing, ...cleanTodo } = todo;
+                    await fetch(API_URL, { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(cleanTodo) });
+                },
+                setPriority(todo, p) {
+                    todo.priority = p;
+                    this.updateTodo(todo);
+                },
+                stopEdit(todo) {
+                    todo.editing = false;
+                    this.updateTodo(todo);
+                },
+                async deleteTodo(id) {
+                    await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id}) });
+                    this.todos = this.todos.filter(t => t.id !== id);
+                },
+                async deleteAll() {
+                    if (confirm("Clear all?")) {
+                        await fetch(API_URL, { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({all: true}) });
+                        this.todos = [];
+                    }
+                },
+                toggleTheme() {
+                    this.theme = this.theme === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', this.theme);
+                }
+            },
+            mounted() { 
+                this.fetchTodos();
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        }).mount('#app');
     </script>
 </body>
 </html>
